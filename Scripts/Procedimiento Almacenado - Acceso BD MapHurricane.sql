@@ -45,6 +45,7 @@ begin
 	drop table if exists dblink_maphurricane;
 	drop table if exists dblink_rel_prediointeresado;
 	drop table if exists dblink_int_interesado;
+	drop table if exists dblink_int_interesado_campo;
 	drop table if exists dblink_tc_interesadotipo;
 	drop table if exists dblink_tc_interesadodocumentotipo;
 	drop table if exists dblink_tc_sexotipo;
@@ -55,14 +56,20 @@ begin
 	drop table if exists dblink_gc_prediocatastro;
 	drop table if exists dblink_gc_terreno;
 	drop table if exists dblink_gc_construccion;
-	drop table if exists dblink_ue_construccion;
+	drop table if exists dblink_ue_construccion_campo;
 	drop table if exists dblink_lc_resultadovisitatipo;
 	drop table if exists dblink_rel_uepredio_campo;
 	drop table if exists dblink_ue_terreno_campo;
 	drop table if exists dblink_ue_unidad_construccion;
+    drop table if exists dblink_ue_unidad_construccion_campo;
 	drop table if exists dblink_tc_unidadconstrucciontipo;
 	drop table if exists dblink_tc_usouconstipo;
 	drop table if exists dblink_tc_construcciontipo;
+	drop table if exists dblink_tc_dominioconstrucciontipo;
+	drop table if exists dblink_tc_calificartipo;
+	drop table if exists dblink_lc_relacionprediotipo;
+	drop table if exists dblink_int_agrupacioninteresados;
+	drop table if exists dblink_rrr_derecho_campo;
 
 	-- ******************************** CONEXIÓN REMOTA ********************************
 
@@ -876,6 +883,18 @@ begin
 			,lc_resultadovisitatipo
 			,identificacion_predio_usando
 			,identificacion_predio_pre_t_id
+			,submissiondate
+			,grupo_encuesta_grupo_sec_ii_contacto_visita_contacto_pregunta13
+			,grupo_encuesta_grupo_sec_ii_contacto_visita_contacto_pregunta17
+			,grupo_encuesta_grupo_sec_ii_contacto_visita_contacto_pregunta21
+			,grupo_encuesta_grupo_sec_ii_contacto_visita_contacto_pregunta25
+			,grupo_encuesta_grupo_sec_ii_contacto_visita_contacto_pregunta29
+			,grupo_encuesta_grupo_sec_iii_interesados_total_interesados
+			,grupo_encuesta_grupo_sec_iii_interesados_int_agrupacionintere00
+			,grupo_encuesta_grupo_sec_ii_contacto_visita_contacto_preguntas_
+			,grupo_encuesta_grupo_sec_ii_contacto_visita_contacto_pregunta30
+			,grupo_encuesta_grupo_sec_ii_contacto_visita_contacto_pregunta31
+			,grupo_encuesta_grupo_sec_iii_interesados_int_agrupacioninteresa
 		FROM serladmcampo."MAPHURRICANE"') 
 		AS 
 		t(
@@ -895,6 +914,18 @@ begin
 			,lc_resultadovisitatipo varchar(250)
 			,identificacion_predio_usando varchar(200)
 			,identificacion_predio_pre_t_id varchar(200)
+			,submissiondate varchar(200)
+			,grupo_encuesta_grupo_sec_ii_contacto_visita_contacto_pregunta13 varchar(200)
+			,grupo_encuesta_grupo_sec_ii_contacto_visita_contacto_pregunta17 varchar(200)
+			,grupo_encuesta_grupo_sec_ii_contacto_visita_contacto_pregunta21 varchar(200)
+			,grupo_encuesta_grupo_sec_ii_contacto_visita_contacto_pregunta25 varchar(200)
+			,grupo_encuesta_grupo_sec_ii_contacto_visita_contacto_pregunta29 varchar(200)
+			,grupo_encuesta_grupo_sec_iii_interesados_total_interesados varchar(200)
+			,grupo_encuesta_grupo_sec_iii_interesados_int_agrupacionintere00 varchar(200)
+			,grupo_encuesta_grupo_sec_ii_contacto_visita_contacto_preguntas_ varchar(200)
+			,grupo_encuesta_grupo_sec_ii_contacto_visita_contacto_pregunta30 varchar(200)
+			,grupo_encuesta_grupo_sec_ii_contacto_visita_contacto_pregunta31 varchar(200)
+			,grupo_encuesta_grupo_sec_iii_interesados_int_agrupacioninteresa varchar(200)
 		)
 	);
 
@@ -1164,5 +1195,275 @@ begin
 			,f_ultmod timestamp
 		)
 	);
+
+
+	create temp table dblink_ue_construccion_campo as
+	(
+	select * from dblink('conn1', 
+		'SELECT numero_predial_18
+			,construccion_general_man_ue_construccion_id_tipoconstruccion
+			,construccion_general_ue_construccion_id_dominioconstrucciontipo
+			,construccion_general_pre_ue_construccion_numero_pisos
+			,construccion_general_corr_pre_ue_construccion_numero_pisos
+			,construccion_general_ue_construccion_anio_construccion
+			,parent_key
+			,"key"
+		FROM serladmcampo."MAPHURRICANE-ue_construccion"') 
+		AS 
+		t(
+			numero_predial_18 varchar(200)
+			,construccion_general_man_ue_construccion_id_tipoconstruccion varchar(200)
+			,construccion_general_ue_construccion_id_dominioconstrucciontipo varchar(200)
+			,construccion_general_pre_ue_construccion_numero_pisos varchar(200)
+			,construccion_general_corr_pre_ue_construccion_numero_pisos varchar(200)
+			,construccion_general_ue_construccion_anio_construccion varchar(200)
+			,parent_key varchar(200)
+			,"key" varchar(200)
+		)
+	);
+
+	create temp table dblink_tc_dominioconstrucciontipo as
+	(
+	select * from dblink('conn1', 
+		'SELECT t_id
+			,codigo
+			,descripcion
+			,inactive
+			,a_ultmod
+			,f_ultmod
+		FROM serladm.tc_dominioconstrucciontipo') 
+		AS 
+		t(
+			t_id int8
+			,codigo int8
+			,descripcion varchar(1024)
+			,inactive bool
+			,a_ultmod varchar(15)
+			,f_ultmod timestamp
+		)
+	);
+
+	create temp table dblink_ue_unidad_construccion_campo as
+	(
+	select * from dblink('conn1', 
+		'SELECT numero_predial_19 
+			,ue_unidadconstruccion_datos_ue_unidadconstruccion_uso
+			,ue_unidadconstruccion_datos_ue_unidadconstruccion_total_habitac
+			,ue_unidadconstruccion_datos_ue_unidadconstruccion_total_banios
+			,ue_unidadconstruccion_datos_ue_unidadconstruccion_total_locales
+			,ue_unidadconstruccion_datos_ue_unidadconstruccion_altura
+			,ue_unidadconstruccion_datos_ue_unidadconstruccion_anio_construc
+			,ue_unidadconstruccion_datos_ue_unidadconstruccion_area_privada_
+			,ue_unidadconstruccion_datos_ue_unidadconstruccion_observaciones
+			,ue_calificacionconvencional_id_calificartipo
+			,grupo_calificacion_convencional_ue_grupocalificacion_acabados_u
+			,grupo_calificacion_convencional_ue_grupocalificacion_acabados00
+			,grupo_calificacion_convencional_ue_grupocalificacion_acabados01
+			,grupo_calificacion_convencional_ue_grupocalificacion_acabados02
+			,grupo_calificacion_convencional_ue_grupocalificacion_acabados03
+			,grupo_calificacion_convencional_ue_grupocalificacion_acabados04
+			,grupo_calificacion_convencional_ue_grupocalificacion_acabados05
+			,grupo_calificacion_convencional_ue_grupocalificacion_acabados06
+			,grupo_calificacion_convencional_ue_grupocalificacion_acabados07
+			,grupo_calificacion_convencional_ue_grupocalificacion_banio_ue_o
+			,grupo_calificacion_convencional_ue_grupocalificacion_banio_ue00
+			,grupo_calificacion_convencional_ue_grupocalificacion_banio_ue01
+			,grupo_calificacion_convencional_ue_grupocalificacion_banio_ue02
+			,grupo_calificacion_convencional_ue_grupocalificacion_banio_ue03
+			,grupo_calificacion_convencional_ue_grupocalificacion_banio_ue04
+			,grupo_calificacion_convencional_ue_grupocalificacion_banio_ue_g
+			,grupo_calificacion_convencional_ue_grupocalificacion_banio_ue05
+			,grupo_calificacion_convencional_ue_grupocalificacion_banio_ue06
+			,grupo_calificacion_convencional_ue_grupocalificacion_cocina_ue_
+			,grupo_calificacion_convencional_ue_grupocalificacion_cocina_u00
+			,grupo_calificacion_convencional_ue_grupocalificacion_cocina_u01
+			,grupo_calificacion_convencional_ue_grupocalificacion_cocina_u02
+			,grupo_calificacion_convencional_ue_grupocalificacion_cocina_u03
+			,grupo_calificacion_convencional_ue_grupocalificacion_cocina_u04
+			,grupo_calificacion_convencional_ue_grupocalificacion_cocina_u05
+			,grupo_calificacion_convencional_ue_grupocalificacion_cocina_u06
+			,grupo_calificacion_convencional_ue_grupocalificacion_cocina_u07
+			,grupo_calificacion_convencional_ue_grupocalificacion_complement
+			,grupo_calificacion_convencional_ue_grupocalificacion_compleme00
+			,grupo_calificacion_convencional_ue_grupocalificacion_compleme01
+			,grupo_calificacion_convencional_total_calificacion_industrial
+			,grupo_calificacion_convencional_total_calificacion_no_industria
+			,grupo_calificacion_convencional_lc_calconve_total_calificacion
+			,grupo_calificacion_no_convencional_lc_anexotipo_tipo_anexo
+			,parent_key
+			,"key" 
+		FROM serladmcampo."MAPHURRICANE-ue_unidadconstruccion"') 
+		AS 
+		t(	numero_predial_19 varchar(200)
+			,ue_unidadconstruccion_datos_ue_unidadconstruccion_uso varchar(200)
+			,ue_unidadconstruccion_datos_ue_unidadconstruccion_total_habitac varchar(200)
+			,ue_unidadconstruccion_datos_ue_unidadconstruccion_total_banios varchar(200)
+			,ue_unidadconstruccion_datos_ue_unidadconstruccion_total_locales varchar(200)
+			,ue_unidadconstruccion_datos_ue_unidadconstruccion_altura varchar(200)
+			,ue_unidadconstruccion_datos_ue_unidadconstruccion_anio_construc varchar(200)
+			,ue_unidadconstruccion_datos_ue_unidadconstruccion_area_privada_ varchar(200)
+			,ue_unidadconstruccion_datos_ue_unidadconstruccion_observaciones varchar(250)
+			,ue_calificacionconvencional_id_calificartipo varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_acabados_u varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_acabados00 varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_acabados01 varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_acabados02 varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_acabados03 varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_acabados04 varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_acabados05 varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_acabados06 varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_acabados07 varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_banio_ue_o varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_banio_ue00 varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_banio_ue01 varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_banio_ue02 varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_banio_ue03 varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_banio_ue04 varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_banio_ue_g varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_banio_ue05 varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_banio_ue06 varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_cocina_ue_ varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_cocina_u00 varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_cocina_u01 varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_cocina_u02 varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_cocina_u03 varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_cocina_u04 varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_cocina_u05 varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_cocina_u06 varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_cocina_u07 varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_complement varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_compleme00 varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_compleme01 varchar(200)
+			,grupo_calificacion_convencional_total_calificacion_industrial varchar(200)
+			,grupo_calificacion_convencional_total_calificacion_no_industria varchar(200)
+			,grupo_calificacion_convencional_lc_calconve_total_calificacion varchar(200)
+			,grupo_calificacion_no_convencional_lc_anexotipo_tipo_anexo varchar(200)
+			,parent_key varchar(200)
+			,"key" varchar(200)
+		)
+	);
+
+	create temp table dblink_tc_calificartipo as
+	(
+	select * from dblink('conn1', 
+		'SELECT t_id
+			,codigo
+			,descripcion
+			,inactive
+			,a_ultmod
+			,f_ultmod
+		FROM serladm.tc_calificartipo') 
+		AS 
+		t(
+			t_id int8
+			,codigo int8
+			,descripcion varchar(1024)
+			,inactive bool
+			,a_ultmod varchar(15)
+			,f_ultmod timestamp
+		)
+	);
+
+	create temp table dblink_lc_relacionprediotipo as
+	(
+	select * from dblink('conn1', 
+		'SELECT t_id
+			,thisclass
+			,baseclass
+			,itfcode
+			,ilicode
+			,seq
+			,inactive
+			,dispname
+			,description
+		FROM serladm.lc_relacionprediotipo') 
+		AS 
+		t(
+			t_id int8
+			,thisclass varchar(1024)
+			,baseclass varchar(1024) 
+			,itfcode int4
+			,ilicode varchar(1024) 
+			,seq int4
+			,inactive bool
+			,dispname varchar(250)
+			,description varchar(1024)
+		)
+	);
+
+	create temp table dblink_int_agrupacioninteresados as
+	(
+	select * from dblink('conn1', 
+		'SELECT t_id
+			,id_grupointeresadotipo
+			,nombre
+			,comienzo_vida_util_version
+			,a_ultmod
+			,f_ultmod
+		FROM serladm.int_agrupacioninteresados') 
+		AS 
+		t(
+			t_id int8
+			,id_grupointeresadotipo int8
+			,nombre varchar(255)
+			,comienzo_vida_util_version timestamp
+			,a_ultmod varchar(15)
+			,f_ultmod timestamp
+
+		)
+	);
+
+	create temp table dblink_int_interesado_campo as
+	(
+	select * from dblink('conn1', 
+		'SELECT int_interesado_datos_contacto_numero_predial_14
+		,int_interesado_datos_contacto_int_interesado_documento_identida
+		,int_interesado_datos_contacto_int_interesado_razon_social
+		,int_interesado_datos_contacto_nombre
+		,int_interesado_datos_contacto_int_interesado_id_grupoetnico
+		,int_interesado_datos_contacto_int_interesado_id_sexotipo
+		,int_interesado_datos_contacto_contactovisita_id_estadociviltipo
+		,int_interesado_datos_contacto_int_interesado_id_interesadotipo
+		,int_interesado_datos_contacto_int_interesado_id_interesadodocum
+		,parent_key
+		,"key"
+		FROM serladmcampo."MAPHURRICANE-int_interesado"') 
+		AS 
+		t(
+		int_interesado_datos_contacto_numero_predial_14 varchar(200)
+		,int_interesado_datos_contacto_int_interesado_documento_identida varchar(200)
+		,int_interesado_datos_contacto_int_interesado_razon_social varchar(200)
+		,int_interesado_datos_contacto_nombre varchar(200)
+		,int_interesado_datos_contacto_int_interesado_id_grupoetnico varchar(200)
+		,int_interesado_datos_contacto_int_interesado_id_sexotipo varchar(200)
+		,int_interesado_datos_contacto_contactovisita_id_estadociviltipo varchar(200)
+		,int_interesado_datos_contacto_int_interesado_id_interesadotipo varchar(200)
+		,int_interesado_datos_contacto_int_interesado_id_interesadodocum varchar(200)
+		,parent_key varchar(200)
+		,"key" varchar(200)
+		)
+	);
+
+	create temp table dblink_rrr_derecho_campo as
+	(
+	select * from dblink('conn1', 
+		'SELECT rrr_derecho_grupo_rrr_derecho_fraccion_derecho
+			,rrr_derecho_grupo_rrr_derecho_fecha_inicio_tenencia
+			,rrr_derecho_grupo_rrr_derecho_descripcion
+			,rrr_derecho_grupo_rrr_derecho_tipo_valor_defecto
+			,parent_key
+			,"key"
+		FROM serladmcampo."MAPHURRICANE-rrr_derecho"') 
+		AS 
+		t(
+			rrr_derecho_grupo_rrr_derecho_fraccion_derecho varchar(200)
+			,rrr_derecho_grupo_rrr_derecho_fecha_inicio_tenencia varchar(200)
+			,rrr_derecho_grupo_rrr_derecho_descripcion varchar(200)
+			,rrr_derecho_grupo_rrr_derecho_tipo_valor_defecto varchar(200)
+			,parent_key varchar(200)
+			,"key" varchar(200)
+		) 
+	);
+
 
 end$$
