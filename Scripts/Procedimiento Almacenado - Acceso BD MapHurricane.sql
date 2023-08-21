@@ -70,6 +70,10 @@ begin
 	drop table if exists dblink_lc_relacionprediotipo;
 	drop table if exists dblink_int_agrupacioninteresados;
 	drop table if exists dblink_rrr_derecho_campo;
+	drop table if exists dblink_uc_estructura_campo;
+	drop table if exists dblink_objeto_construccion_tipo;
+	drop table if exists dblink_estado_conservacion_tipo;
+
 
 	-- ******************************** CONEXIÓN REMOTA ********************************
 
@@ -1256,6 +1260,7 @@ begin
 			,ue_unidadconstruccion_datos_ue_unidadconstruccion_area_privada_
 			,ue_unidadconstruccion_datos_ue_unidadconstruccion_observaciones
 			,ue_calificacionconvencional_id_calificartipo
+			,grupo_calificacion_convencional_ue_grupocalificacion_estructura
 			,grupo_calificacion_convencional_ue_grupocalificacion_acabados_u
 			,grupo_calificacion_convencional_ue_grupocalificacion_acabados00
 			,grupo_calificacion_convencional_ue_grupocalificacion_acabados01
@@ -1304,6 +1309,7 @@ begin
 			,ue_unidadconstruccion_datos_ue_unidadconstruccion_area_privada_ varchar(200)
 			,ue_unidadconstruccion_datos_ue_unidadconstruccion_observaciones varchar(250)
 			,ue_calificacionconvencional_id_calificartipo varchar(200)
+			,grupo_calificacion_convencional_ue_grupocalificacion_estructura varchar(250)
 			,grupo_calificacion_convencional_ue_grupocalificacion_acabados_u varchar(200)
 			,grupo_calificacion_convencional_ue_grupocalificacion_acabados00 varchar(200)
 			,grupo_calificacion_convencional_ue_grupocalificacion_acabados01 varchar(200)
@@ -1465,5 +1471,77 @@ begin
 		) 
 	);
 
+	create temp table dblink_uc_estructura_campo as
+	(
+	select * from dblink('conn1', 
+		'SELECT ue_objetoconstruccion_armazon_tipo
+			,ue_objetoconstruccion_armazon_puntos
+			,ue_objetoconstruccion_muros_tipo
+			,ue_objetoconstruccion_muros_puntos
+			,ue_objetoconstruccion_cubierta_tipo
+			,ue_objetoconstruccion_cubierta_puntos
+			,ue_grupocalificacion_estructura_conservacion
+			,ue_grupocalificacion_estructura_conservacion_puntos
+			,ue_grupocalificacion_estructura_subtotal
+			,parent_key
+			,"key"
+		FROM serladmcampo."MAPHURRICANE-ue_grupocalificacion_estructura"') 
+		AS 
+		t(
+		ue_objetoconstruccion_armazon_tipo varchar(200)
+		,ue_objetoconstruccion_armazon_puntos varchar(200)
+		,ue_objetoconstruccion_muros_tipo varchar(200)
+		,ue_objetoconstruccion_muros_puntos varchar(200)
+		,ue_objetoconstruccion_cubierta_tipo varchar(200)
+		,ue_objetoconstruccion_cubierta_puntos varchar(200)
+		,ue_grupocalificacion_estructura_conservacion varchar(200)
+		,ue_grupocalificacion_estructura_conservacion_puntos varchar(200)
+		,ue_grupocalificacion_estructura_subtotal varchar(200)
+		,parent_key varchar(200)
+		,"key" varchar(200)	
+		) 
+	);
+
+	create temp table dblink_objeto_construccion_tipo as
+	(
+	select * from dblink('conn1', 
+		'SELECT t_id
+			,codigo
+			,descripcion
+			,inactive
+			,a_ultmod
+			,f_ultmod
+		FROM serladm.tc_objetoconstrucciontipo') 
+		AS 
+		t(
+			t_id int8
+			,codigo int8
+			,descripcion varchar(1024)
+			,inactive bool
+			,a_ultmod varchar(15)
+			,f_ultmod timestamp
+		) 
+	);
+
+	create temp table dblink_estado_conservacion_tipo as
+	(
+	select * from dblink('conn1', 
+		'SELECT t_id
+			,codigo
+			,descripcion
+			,inactive
+			,a_ultmod
+			,f_ultmod
+		FROM serladm.tc_estadoconservaciontipo') 
+		AS 
+		t(
+			t_id int8
+			,codigo int8
+			,descripcion varchar(1024)
+			,inactive bool
+			,a_ultmod varchar(15)
+			,f_ultmod timestamp
+		  ) 
+	);
 
 end$$

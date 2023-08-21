@@ -23,6 +23,14 @@ begin
 		drop table if exists temp_frm_interesado;
 		drop table if exists temp_derecho_campo;
 		drop table if exists temp_frm_interesado_derecho;
+		drop table if exists temp_terrenos_campo;
+		drop table if exists temp_rel_terreno_predio;
+		drop table if exists temp_unidades_intervencion_mh;
+		drop table if exists temp_rel_predio_terreno;
+		drop table if exists temp_centroides_terreno_predio;
+		drop table if exists temp_interseccion_rel_terrenopredio_w_ui;
+		drop table if exists rel_terreno_predio_ui;
+		drop table if exists temp_frm_interesado_derecho_w_ui;
 		
 		create temp table temp_maphurricane as
 		(
@@ -167,8 +175,161 @@ begin
 			on tempfrminteresado."key" = tempderechocampo.parent_key
 		);
 	
+create temp table temp_terrenos_campo as
+		(
+			select t_id t_id_terreno
+				,local_id
+				,etiqueta
+				,fecha_edicion
+				,fecha_alta
+				,geom
+			from dblink_ue_terreno_campo
+			where substring(local_id,1,5) in ('13458','20787','20032', '13268') 
+			order by 1
+		);
+		
+		create temp table temp_rel_terreno_predio as
+		(
+			select id_terreno
+				,numero_predial
+				,numero_predial_anterior numero_predial_precarga
+				,accion_novedad
+				,fecha_mod fecha_modificacion
+			from dblink_rel_uepredio_campo
+			where substring(numero_predial,1,5) in ('13458','20787','20032', '13268')
+			order by 1
+		);
+		
+		create temp table temp_unidades_intervencion_mh as
+		(
+			select mhunidadintervencion.t_id unidadintervencion_t_id
+			--,mhunidadintervencion.id_limite_administrativo
+			,mhlimiteadministrativo.codigo codigo_municipio
+			,mhlimiteadministrativo.nombre nombre_municipio
+			,mhunidadintervencion.codigo codigo_unidad_intervencion
+			,mhunidadintervencion.descripcion
+			--,mhunidadintervencion.id_estado
+			,mhunidadintervencionestado.descripcion estado
+			,st_transform(mhunidadintervencion.geometria,9377) geometria
+			from dblink_mh_unidadintervencion  mhunidadintervencion
+			inner join dblink_mh_unidadintervencionestado mhunidadintervencionestado on mhunidadintervencion.id_estado = mhunidadintervencionestado.t_id 
+			inner join dblink_mh_limite_administrativo mhlimiteadministrativo on mhunidadintervencion.id_limite_administrativo = mhlimiteadministrativo.t_id 
+			where mhlimiteadministrativo.codigo in ('13458','20787','20032', '13268')
+		);
+		
+		-- (1) Unificación Terreno con Predio
+		create temp table temp_rel_predio_terreno as
+		(
+			select distinct terrenopredio.id_terreno
+					,terrenopredio.numero_predial
+					,terrenopredio.numero_predial_precarga
+					,terrenopredio.accion_novedad
+					,terrenopredio.fecha_modificacion
+					,terrenoscampo.t_id_terreno
+					,terrenoscampo.local_id
+					,terrenoscampo.etiqueta
+					,terrenoscampo.fecha_edicion
+					,terrenoscampo.fecha_alta
+					,geom
+			from temp_rel_terreno_predio terrenopredio
+			inner join temp_terrenos_campo terrenoscampo on terrenopredio.id_terreno = terrenoscampo.t_id_terreno
+		);
+		
+		-- (2) Generación de Centroides
+		create temp table temp_centroides_terreno_predio as
+		(
+			select id_terreno
+						,numero_predial
+						,numero_predial_precarga
+						,accion_novedad
+						,fecha_modificacion
+						,t_id_terreno
+						,local_id
+						,etiqueta
+						,fecha_edicion
+						,fecha_alta
+						,ST_Centroid(geom) geom
+			from temp_rel_predio_terreno
+		);
+		
+		create temp table temp_interseccion_rel_terrenopredio_w_ui as
+		(
+			select distinct t1.id_terreno
+					,t1.numero_predial
+					,t1.numero_predial_precarga
+					,t1.accion_novedad
+					,t1.fecha_modificacion
+					,t1.t_id_terreno
+					,t1.local_id
+					,t1.etiqueta
+					,t1.fecha_edicion
+					,t1.fecha_alta
+					,t2.nombre_municipio
+					,t2.codigo_unidad_intervencion
+					,ST_Intersects(st_transform(t1.geom, 9377), t2.geometria) geom
+			from temp_centroides_terreno_predio t1, temp_unidades_intervencion_mh t2
+			where ST_Intersects(st_transform(t1.geom, 9377), t2.geometria) is true
+		);
+		
+		create temp table rel_terreno_predio_ui as
+		(
+			select id_terreno
+				,numero_predial
+				,numero_predial_precarga
+				,accion_novedad
+				,fecha_modificacion
+				--,t_id_terreno
+				--,local_id
+				,etiqueta
+				,fecha_edicion
+				,fecha_alta
+				,nombre_municipio
+				,codigo_unidad_intervencion
+			from temp_interseccion_rel_terrenopredio_w_ui
+		);
+		
+		create temp table temp_frm_interesado_derecho_w_ui as
+		(
+		select distinct interesadoderecho.fecha_sincronizacion
+				,interesadoderecho.municipio
+				,interesadoderecho.identificacion_predio_numero_predial
+				,interesadoderecho.tableta
+				,interesadoderecho.tipo_contacto_visita		
+				,interesadoderecho.numero_dni_precarga
+				,interesadoderecho.primer_nombre_contacto_visita
+				,interesadoderecho.segundo_nombre_contacto_visita
+				,interesadoderecho.primer_apellido_contacto_visita
+				,interesadoderecho.segundo_apellido_concacto_visita
+				,interesadoderecho.sexo
+				,interesadoderecho.grupo_etnico
+				,interesadoderecho.total_interesados
+				,interesadoderecho.id_agrupacion
+				,interesadoderecho.nombre_agrupacion
+				,interesadoderecho.interesado_tipo
+				,interesadoderecho.tipo_interesado_documento
+				,interesadoderecho.dni_interesado
+				,interesadoderecho.razon_social_interesado
+				,interesadoderecho.interesado_nombre_completo
+				,interesadoderecho.sexo_interesado
+				,interesadoderecho.grupo_etnico_interesado
+				,interesadoderecho.estado_civil_interesado
+				,interesadoderecho.tipo_derecho
+				,interesadoderecho.fraccion_derecho
+				,interesadoderecho.fecha_inicio_tenencia
+				,interesadoderecho.descripcion_derecho
+				,(case when terrenopredioui.nombre_municipio is null then 'Posible terreno sin geometria'
+					else terrenopredioui.nombre_municipio
+					end) nombre_municipio
+				,(case when terrenopredioui.codigo_unidad_intervencion is null then 'Posible terreno sin geometria'
+					else terrenopredioui.codigo_unidad_intervencion
+					end) codigo_unidad_intervencion
+		from temp_frm_interesado_derecho interesadoderecho
+		left join rel_terreno_predio_ui terrenopredioui
+		on interesadoderecho.identificacion_predio_numero_predial = terrenopredioui.numero_predial
+		);	
+	
 		consulta_1 := format('copy (select *
-									from temp_frm_interesado_derecho) to %L CSV HEADER', ruta_archivo);
+									from temp_frm_interesado_derecho_w_ui) to %L CSV HEADER', ruta_archivo);
 								
 		execute consulta_1;
 	
