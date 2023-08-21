@@ -33,6 +33,7 @@ begin
 		drop table if exists temp_interseccion_rel_terrenopredio_w_ui;
 		drop table if exists rel_terreno_predio_ui;
 		drop table if exists temp_relacion_construccion_unidadconstruccion_ui;
+		drop table if exists temp_uc_estructura_campo;
 		
 		create temp table temp_maphurricane as
 		(
@@ -76,59 +77,149 @@ begin
 				on domdominiotipo.codigo = cast(mapconstruccion.construccion_general_ue_construccion_id_dominioconstrucciontipo as int8)
 			where substring(mapconstruccion.numero_predial_18,1,5) in ('20250','70713','70823')
 		);
+	
+		create temp table temp_uc_estructura_campo as
+		(
+		select estructura.ue_objetoconstruccion_armazon_tipo tipo_armazon
+			,estructura.ue_objetoconstruccion_armazon_puntos puntos_armazon
+			,estructura.ue_objetoconstruccion_muros_tipo tipo_muro
+			,estructura.ue_objetoconstruccion_muros_puntos puntos_muro
+			,estructura.ue_objetoconstruccion_cubierta_tipo tipo_cubierta
+			,estructura.ue_objetoconstruccion_cubierta_puntos puntos_cubierta
+			,estructura.ue_grupocalificacion_estructura_conservacion conservacion_estructura
+			,estructura.ue_grupocalificacion_estructura_conservacion_puntos puntos_conservacion
+			,estructura.ue_grupocalificacion_estructura_subtotal subtotal_estructura
+			,estructura.parent_key
+			,estructura."key"
+		from dblink_uc_estructura_campo estructura
+		);	
 		
 		create temp table temp_unidad_construccion_campo as
 		(
-			select numero_predial_19 numero_predial_unidad_construccion
-				,ue_unidadconstruccion_datos_ue_unidadconstruccion_uso uso_unidad_construccion
-				,ue_unidadconstruccion_datos_ue_unidadconstruccion_total_habitac total_habitaciones_unidad_construccion
-				,ue_unidadconstruccion_datos_ue_unidadconstruccion_total_banios total_banios_unidad_construccion
-				,ue_unidadconstruccion_datos_ue_unidadconstruccion_total_locales total_locales_unidad_construccion
-				,ue_unidadconstruccion_datos_ue_unidadconstruccion_altura unidad_construccion_altura
-				,ue_unidadconstruccion_datos_ue_unidadconstruccion_anio_construc anio_construccion_unidad_construccion
-				,ue_unidadconstruccion_datos_ue_unidadconstruccion_area_privada_ area_privada_unidad_construccion
-				,ue_unidadconstruccion_datos_ue_unidadconstruccion_observaciones observaciones
-				,ue_calificacionconvencional_id_calificartipo id_tipo_calificacion
+			select unidadconstruccion.numero_predial_19 numero_predial_unidad_construccion
+				,unidadconstruccion.ue_unidadconstruccion_datos_ue_unidadconstruccion_uso uso_unidad_construccion
+				,unidadconstruccion.ue_unidadconstruccion_datos_ue_unidadconstruccion_total_habitac total_habitaciones_unidad_construccion
+				,unidadconstruccion.ue_unidadconstruccion_datos_ue_unidadconstruccion_total_banios total_banios_unidad_construccion
+				,unidadconstruccion.ue_unidadconstruccion_datos_ue_unidadconstruccion_total_locales total_locales_unidad_construccion
+				,unidadconstruccion.ue_unidadconstruccion_datos_ue_unidadconstruccion_altura unidad_construccion_altura
+				,unidadconstruccion.ue_unidadconstruccion_datos_ue_unidadconstruccion_anio_construc anio_construccion_unidad_construccion
+				,unidadconstruccion.ue_unidadconstruccion_datos_ue_unidadconstruccion_area_privada_ area_privada_unidad_construccion
+				,unidadconstruccion.ue_unidadconstruccion_datos_ue_unidadconstruccion_observaciones observaciones
+				,unidadconstruccion.ue_calificacionconvencional_id_calificartipo id_tipo_calificacion
 				,tccalificartipo.descripcion tipo_calificacion
-				,grupo_calificacion_convencional_ue_grupocalificacion_acabados_u fachada
-				,grupo_calificacion_convencional_ue_grupocalificacion_acabados00 puntos_fachada
-				,grupo_calificacion_convencional_ue_grupocalificacion_acabados01 cubrimiento_muros
-				,grupo_calificacion_convencional_ue_grupocalificacion_acabados02 puntos_cubrimiento_muros
-				,grupo_calificacion_convencional_ue_grupocalificacion_acabados03 pisos
-				,grupo_calificacion_convencional_ue_grupocalificacion_acabados04 puntos_pisos
-				,grupo_calificacion_convencional_ue_grupocalificacion_acabados05 conservacion
-				,grupo_calificacion_convencional_ue_grupocalificacion_acabados06 puntos_conservacion_acabados
-				,grupo_calificacion_convencional_ue_grupocalificacion_acabados07 subtotal_acabados
-				,grupo_calificacion_convencional_ue_grupocalificacion_banio_ue_o tamanio_banio
-				,grupo_calificacion_convencional_ue_grupocalificacion_banio_ue00 puntos_tamanio_banio
-				,grupo_calificacion_convencional_ue_grupocalificacion_banio_ue01 enchapes_banio
-				,grupo_calificacion_convencional_ue_grupocalificacion_banio_ue02 puntos_enchape_banio
-				,grupo_calificacion_convencional_ue_grupocalificacion_banio_ue03 mobiliario_banio
-				,grupo_calificacion_convencional_ue_grupocalificacion_banio_ue04 puntos_mobiliario_banio
-				,grupo_calificacion_convencional_ue_grupocalificacion_banio_ue_g conservacion_banio
-				,grupo_calificacion_convencional_ue_grupocalificacion_banio_ue05 puntos_conservacion_banio
-				,grupo_calificacion_convencional_ue_grupocalificacion_banio_ue06 subtotal_banio
-				,grupo_calificacion_convencional_ue_grupocalificacion_cocina_ue_ tamanio_cocina
-				,grupo_calificacion_convencional_ue_grupocalificacion_cocina_u00 puntos_tamanio_conina
-				,grupo_calificacion_convencional_ue_grupocalificacion_cocina_u01 enchapes_cocina
-				,grupo_calificacion_convencional_ue_grupocalificacion_cocina_u02 puntos_enchapes_cocina
-				,grupo_calificacion_convencional_ue_grupocalificacion_cocina_u03 mobiliario_cocina
-				,grupo_calificacion_convencional_ue_grupocalificacion_cocina_u04 puntos_mobiliario_cocina
-				,grupo_calificacion_convencional_ue_grupocalificacion_cocina_u05 conservacion_cocina
-				,grupo_calificacion_convencional_ue_grupocalificacion_cocina_u06 puntos_conservacion_cocina
-				,grupo_calificacion_convencional_ue_grupocalificacion_cocina_u07 subtotal_cocina
-				,grupo_calificacion_convencional_ue_grupocalificacion_complement cerchas
-				,grupo_calificacion_convencional_ue_grupocalificacion_compleme00 puntos_cerchas
-				,grupo_calificacion_convencional_ue_grupocalificacion_compleme01 subtotal_cerchas
-				,grupo_calificacion_convencional_total_calificacion_industrial total_calificacion_industria
-				,grupo_calificacion_convencional_total_calificacion_no_industria total_calificacion_no_industrial
-				,grupo_calificacion_convencional_lc_calconve_total_calificacion total_calificacion
-				,grupo_calificacion_no_convencional_lc_anexotipo_tipo_anexo tipo_anexo
-				,parent_key
-				,"key"
+				-- ************ ESTRUCTURA ************
+				--,tempucestructuracampo.tipo_armazon
+				,objetoconstruccion_1.descripcion tipo_armazon
+				,tempucestructuracampo.puntos_armazon
+				--,tempucestructuracampo.tipo_muro
+				,objetoconstruccion_2.descripcion tipo_muro
+				,tempucestructuracampo.puntos_muro
+				--,tempucestructuracampo.tipo_cubierta
+				,objetoconstruccion_3.descripcion tipo_cubierta
+				,tempucestructuracampo.puntos_cubierta
+				--,tempucestructuracampo.conservacion_estructura
+				,estadoconservacion_1.descripcion conservacion_estructura
+				,tempucestructuracampo.puntos_conservacion
+				,tempucestructuracampo.subtotal_estructura
+				-- ************ ACABADOS ************
+				--,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_estructura estructura
+				--,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_acabados_u fachada
+				,objetoconstruccion_4.descripcion fachada
+				,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_acabados00 puntos_fachada
+				--,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_acabados01 cubrimiento_muros
+				,objetoconstruccion_5.descripcion cubrimiento_muros
+				,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_acabados02 puntos_cubrimiento_muros
+				--,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_acabados03 pisos
+				,objetoconstruccion_6.descripcion pisos
+				,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_acabados04 puntos_pisos
+				--,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_acabados05 conservacion
+				,estadoconservacion_2.descripcion conservacion_acabados
+				,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_acabados06 puntos_conservacion_acabados
+				,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_acabados07 subtotal_acabados
+				-- ************ BANIO ************
+				--,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_banio_ue_o tamanio_banio
+				,objetoconstruccion_7.descripcion tamanio_banio
+				,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_banio_ue00 puntos_tamanio_banio
+				--,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_banio_ue01 enchapes_banio
+				,objetoconstruccion_8.descripcion enchapes_banio
+				,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_banio_ue02 puntos_enchape_banio
+				--,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_banio_ue03 mobiliario_banio
+				,objetoconstruccion_9.descripcion mobiliario_banio
+				,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_banio_ue04 puntos_mobiliario_banio
+				--,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_banio_ue_g conservacion_banio
+				,estadoconservacion_3.descripcion conservacion_banio
+				,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_banio_ue05 puntos_conservacion_banio
+				,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_banio_ue06 subtotal_banio
+				-- ************ COCINA ************
+				--,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_cocina_ue_ tamanio_cocina
+				,objetoconstruccion_10.descripcion tamanio_cocina
+				,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_cocina_u00 puntos_tamanio_conina
+				--,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_cocina_u01 enchapes_cocina
+				,objetoconstruccion_11.descripcion enchapes_cocina
+				,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_cocina_u02 puntos_enchapes_cocina
+				--,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_cocina_u03 mobiliario_cocina
+				,objetoconstruccion_12.descripcion mobiliario_cocina
+				,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_cocina_u04 puntos_mobiliario_cocina
+				--y d,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_cocina_u05 conservacion_cocina
+				,estadoconservacion_4.descripcion conservacion_cocina
+				,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_cocina_u06 puntos_conservacion_cocina
+				,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_cocina_u07 subtotal_cocina
+				-- ************ CERCHAS ************
+				--,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_complement cerchas
+				,objetoconstruccion_13.descripcion cerchas
+				,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_compleme00 puntos_cerchas
+				,unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_compleme01 subtotal_cerchas
+				,unidadconstruccion.grupo_calificacion_convencional_total_calificacion_industrial total_calificacion_industria
+				,unidadconstruccion.grupo_calificacion_convencional_total_calificacion_no_industria total_calificacion_no_industrial
+				,unidadconstruccion.grupo_calificacion_convencional_lc_calconve_total_calificacion total_calificacion
+				,unidadconstruccion.grupo_calificacion_no_convencional_lc_anexotipo_tipo_anexo tipo_anexo
+				,unidadconstruccion.parent_key
+				,unidadconstruccion."key"
 			from dblink_ue_unidad_construccion_campo unidadconstruccion
 			left join dblink_tc_calificartipo tccalificartipo
-			on cast(unidadconstruccion.ue_calificacionconvencional_id_calificartipo as int8) = tccalificartipo.codigo	
+				on cast(unidadconstruccion.ue_calificacionconvencional_id_calificartipo as int8) = tccalificartipo.codigo
+			inner join temp_uc_estructura_campo tempucestructuracampo
+				on unidadconstruccion."key" = tempucestructuracampo.parent_key
+			-- Conservaciones
+			left join dblink_estado_conservacion_tipo estadoconservacion_1
+				on estadoconservacion_1.codigo = cast(tempucestructuracampo.conservacion_estructura as int8)
+			left join dblink_estado_conservacion_tipo estadoconservacion_2
+				on estadoconservacion_2.codigo = cast(unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_acabados05 as int8)
+			left join dblink_estado_conservacion_tipo estadoconservacion_3
+				on estadoconservacion_3.codigo = cast(unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_banio_ue_g as int8)
+			left join dblink_estado_conservacion_tipo estadoconservacion_4
+				on estadoconservacion_4.codigo = cast(unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_cocina_u05 as int8)
+			-- Objetos: ESTRUCTURA
+			left join dblink_objeto_construccion_tipo objetoconstruccion_1
+				on objetoconstruccion_1.codigo = cast(tempucestructuracampo.tipo_armazon as int8)
+			left join dblink_objeto_construccion_tipo objetoconstruccion_2
+				on objetoconstruccion_2.codigo = cast(tempucestructuracampo.tipo_muro as int8)
+			left join dblink_objeto_construccion_tipo objetoconstruccion_3
+				on objetoconstruccion_3.codigo = cast(tempucestructuracampo.tipo_cubierta as int8)
+			-- Objetos: ACABADOS
+			left join dblink_objeto_construccion_tipo objetoconstruccion_4
+				on objetoconstruccion_4.codigo = cast(unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_acabados_u as int8)
+			left join dblink_objeto_construccion_tipo objetoconstruccion_5
+				on objetoconstruccion_5.codigo = cast(unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_acabados01 as int8)
+			left join dblink_objeto_construccion_tipo objetoconstruccion_6
+				on objetoconstruccion_6.codigo = cast(unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_acabados03 as int8)
+			-- Objetos: BANIOS
+			left join dblink_objeto_construccion_tipo objetoconstruccion_7
+				on objetoconstruccion_7.codigo = cast(unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_banio_ue_o as int8)
+			left join dblink_objeto_construccion_tipo objetoconstruccion_8
+				on objetoconstruccion_8.codigo = cast(unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_banio_ue01 as int8)
+			left join dblink_objeto_construccion_tipo objetoconstruccion_9
+				on objetoconstruccion_9.codigo = cast(unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_banio_ue03 as int8)
+			-- Objetos: COCINA
+			left join dblink_objeto_construccion_tipo objetoconstruccion_10
+				on objetoconstruccion_10.codigo = cast(unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_cocina_ue_ as int8)
+			left join dblink_objeto_construccion_tipo objetoconstruccion_11
+				on objetoconstruccion_11.codigo = cast(unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_cocina_u01 as int8)
+			left join dblink_objeto_construccion_tipo objetoconstruccion_12
+				on objetoconstruccion_12.codigo = cast(unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_cocina_u03 as int8)
+			-- Objetos: CERCHA
+			left join dblink_objeto_construccion_tipo objetoconstruccion_13
+				on objetoconstruccion_13.codigo = cast(unidadconstruccion.grupo_calificacion_convencional_ue_grupocalificacion_complement as int8)				
 			where substring(numero_predial_19,1,5) in ('20250','70713','70823')
 		);
 		
@@ -202,14 +293,24 @@ begin
 				,unidadconstruccioncampo.area_privada_unidad_construccion
 				,unidadconstruccioncampo.observaciones
 				,unidadconstruccioncampo.id_tipo_calificacion
-				,unidadconstruccioncampo.tipo_calificacion
+				,unidadconstruccioncampo.tipo_calificacion				
+				,unidadconstruccioncampo.tipo_armazon
+				,unidadconstruccioncampo.puntos_armazon
+				,unidadconstruccioncampo.tipo_muro
+				,unidadconstruccioncampo.puntos_muro
+				,unidadconstruccioncampo.tipo_cubierta
+				,unidadconstruccioncampo.puntos_cubierta
+				,unidadconstruccioncampo.conservacion_estructura
+				,unidadconstruccioncampo.puntos_conservacion
+				,unidadconstruccioncampo.subtotal_estructura				
+				--,unidadconstruccioncampo.estructura
 				,unidadconstruccioncampo.fachada
 				,unidadconstruccioncampo.puntos_fachada
 				,unidadconstruccioncampo.cubrimiento_muros
 				,unidadconstruccioncampo.puntos_cubrimiento_muros
 				,unidadconstruccioncampo.pisos
 				,unidadconstruccioncampo.puntos_pisos
-				,unidadconstruccioncampo.conservacion
+				,unidadconstruccioncampo.conservacion_acabados
 				,unidadconstruccioncampo.puntos_conservacion_acabados
 				,unidadconstruccioncampo.subtotal_acabados
 				,unidadconstruccioncampo.tamanio_banio
@@ -382,14 +483,24 @@ begin
 						,construccionunidadconstruccion.area_privada_unidad_construccion
 						,construccionunidadconstruccion.observaciones
 						,construccionunidadconstruccion.id_tipo_calificacion
-						,construccionunidadconstruccion.tipo_calificacion
+						,construccionunidadconstruccion.tipo_calificacion						
+						,construccionunidadconstruccion.tipo_armazon
+						,construccionunidadconstruccion.puntos_armazon
+						,construccionunidadconstruccion.tipo_muro
+						,construccionunidadconstruccion.puntos_muro
+						,construccionunidadconstruccion.tipo_cubierta
+						,construccionunidadconstruccion.puntos_cubierta
+						,construccionunidadconstruccion.conservacion_estructura
+						,construccionunidadconstruccion.puntos_conservacion
+						,construccionunidadconstruccion.subtotal_estructura						
+						--,construccionunidadconstruccion.estructura
 						,construccionunidadconstruccion.fachada
 						,construccionunidadconstruccion.puntos_fachada
 						,construccionunidadconstruccion.cubrimiento_muros
 						,construccionunidadconstruccion.puntos_cubrimiento_muros
 						,construccionunidadconstruccion.pisos
 						,construccionunidadconstruccion.puntos_pisos
-						,construccionunidadconstruccion.conservacion
+						,construccionunidadconstruccion.conservacion_acabados
 						,construccionunidadconstruccion.puntos_conservacion_acabados
 						,construccionunidadconstruccion.subtotal_acabados
 						,construccionunidadconstruccion.tamanio_banio
