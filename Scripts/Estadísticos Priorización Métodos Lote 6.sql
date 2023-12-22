@@ -3,12 +3,12 @@
 
 /*
  * Los procesos que se ejecutan en este PA son:
- * Estad铆sticos Priorizaci贸n M茅todos
+ * Estad韘ticos Priorizaci髇 M閠odos
  */
 
 /*
  * Desarrollado por: Rodian Saby
- * 脷ltima actualizaci贸n: 2023-11-30
+ * 趌tima actualizaci髇: 2023-06-06
  * */
 
 create or replace procedure estadisticos_priorizacion_predio_metodo_lote_6(codigo_municipio text)
@@ -25,18 +25,18 @@ begin
 	drop table if exists temp_predios_derivados; 
 	drop table if exists temp_predios_saldos;
 	
-	-- F铆sicas
+	-- F韘icas
 	execute 'drop table if exists estadisticos_priorizacion_predio_metodo_lote_6_' || codigo_municipio || ';';
 	
 	--Vistas
 
-	--****************************** CONEXI脫N ******************************
+	--****************************** CONEXI覰 ******************************
 
 	call colombiaseg_lote6.dblink_bd_maphurricane();
 
 	--****************************** EJECUCION ******************************
 
-	-- Categorizaci贸n Superior en 谩rea a lo suministrado por el GC
+	-- Categorizaci髇 Superior en 醨ea a lo suministrado por el GC
 	create temp table temp_superior_en_area_estandar as
 	(
 	select superior_en_area_estandar
@@ -46,7 +46,7 @@ begin
 		group by 1
 	);
 	
-	-- Categorizaci贸n Terrenos digitalizados sin relaci贸n con terrenos GC
+	-- Categorizaci髇 Terrenos digitalizados sin relaci髇 con terrenos GC
 	create temp table temp_terrenos_nuevos_digitalizacion as
 	(
 	select terrenos_nuevos_digitalizacion
@@ -56,7 +56,7 @@ begin
 		group by 1
 	);
 	
-	-- Categorizaci贸n Posibles informalidades
+	-- Categorizaci髇 Posibles informalidades
 	create temp table temp_posible_informalidad as
 	(
 	select posible_informalidad
@@ -66,7 +66,7 @@ begin
 		group by 1
 	);
 	
-	-- Categorizaci贸n Verificaci贸n de 谩reas geom茅tricas vs 谩reas registrales
+	-- Categorizaci髇 Verificaci髇 de 醨eas geom閠ricas vs 醨eas registrales
 	create temp table temp_area_registral as
 	(
 	select verificacion_area_registral
@@ -76,7 +76,7 @@ begin
 		group by 1
 	);
 	
-	-- Categorizaci贸n Predios con Derivados
+	-- Categorizaci髇 Predios con Derivados
 	create temp table temp_predios_derivados as
 	(
 	select predios_con_derivados
@@ -86,7 +86,7 @@ begin
 		group by 1
 	);
 	
-	-- Categorizaci贸n Predios con Saldos
+	-- Categorizaci髇 Predios con Saldos
 	create temp table temp_predios_saldos as
 	(
 	select predios_con_saldos
